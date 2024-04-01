@@ -1,0 +1,44 @@
+# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
+
+# dependencies
+/client/node_modules/
+/client/%ProgramData%
+/client/.prettierrc
+/client/doc.css
+/client/doc.js
+
+/server/node_modules/
+/server/index.js
+/server/.prettierrc
+
+.prettierrc
+# Expo
+/client/.expo/
+/client/dist/
+/client/web-build/
+
+# Native
+/client/*.orig.*
+/client/*.jks
+/client/*.p8
+/client/*.p12
+/client/*.key
+/client/*.mobileprovision
+
+# Metro
+/client/.metro-health-check*
+
+# debug
+/client/npm-debug.*
+/client/yarn-debug.*
+/client/yarn-error.*
+
+# macOS
+/client/.DS_Store
+/client/*.pem
+
+# local env files
+/client/.env*.local
+
+# typescript
+/client/*.tsbuildinfo
