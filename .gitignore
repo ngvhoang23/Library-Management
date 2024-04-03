@@ -12,6 +12,7 @@
 /server/.prettierrc
 
 .prettierrc
+.gitignore
 # Expo
 /client/.expo/
 /client/dist/
