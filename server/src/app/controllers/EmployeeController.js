@@ -39,7 +39,7 @@ class EmployeeController {
 
   // [GET] /users/employees/searching/:search_value
   searchEmployees(req, res) {
-   const { search_value } = req.query;
+  const { search_value } = req.query;
 
       const promise = () => {
         return new Promise((resolve, reject) => {
