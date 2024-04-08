@@ -44,7 +44,45 @@ class EmployeeController {
   postEmployee(req, res) {}
 
   // [DELETE] /users/employee
-  deleteEmployee(req, res) {}
+  deleteEmployee(req, res) {
+    const { user_id } = req.body;
+
+    const deleteAuthInfo = () => {
+      return new Promise((resolve, reject) => {
+        db.query(`delete from user_auth_info where user_id = ${user_id}`, (err, result) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(result);
+          }
+        });
+      });
+    };
+
+    const deleteUserInfo = () => {
+      return new Promise((resolve, reject) => {
+        db.query(`delete from user_info where user_id = ${user_id}`, (err, result) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(result);
+          }
+        });
+      });
+    };
+
+    deleteUserInfo()
+      .then((result) => {
+        return deleteAuthInfo();
+      })
+      .then((result) => {
+        res.status(200).send(result);
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(400).send(err);
+      });
+  }
 
   // [PUT] /users/employee
   editEmployee(req, res) {}
