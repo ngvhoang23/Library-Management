@@ -16,7 +16,33 @@ class ReaderController {
   postReader(req, res) {}
 
   // [DELETE] /users/reader
-  deleteReader(req, res) {}
+  deleteReader(req, res) {
+    const { user_id } = req.body;
+
+    const deleteAuthInfo = () => {
+      return new Promise((resolve, reject) => {
+        db.query(
+          `delete from user_auth_info where user_id = ${user_id}`,
+          (err, result) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(result);
+            }
+          }
+        );
+      });
+    };
+
+    deleteAuthInfo()
+      .then((result) => {
+        res.status(200).send(result);
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(400).send(err);
+      });
+  }
 
   // [PUT] /users/reader
   editReader(req, res) {}
