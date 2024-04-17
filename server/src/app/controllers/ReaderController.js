@@ -4,7 +4,35 @@ const moment = require("moment");
 
 class ReaderController {
   // [GET] /users/readers
-  getReaders(req, res) {}
+  getReaders(req, res) {
+    const promise = () => {
+      return new Promise((resolve, reject) => {
+        db.query(
+          `
+            select ui.*, uai.user_name, uai.password, uai.role, uai.role from user_auth_info uai
+                inner join user_info ui
+                on uai.user_id = ui.user_id
+            where uai.role = 'reader'
+            `,
+          (err, result) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(result);
+            }
+          }
+        );
+      });
+    };
+
+    promise()
+      .then((result) => {
+        res.status(200).send(result);
+      })
+      .catch((err) => {
+        res.status(400).send(err);
+      });
+  }
 
   // [GET] /users/readers/:user_id
   getReaderById(req, res) {
@@ -25,7 +53,7 @@ class ReaderController {
             } else {
               resolve(result);
             }
-          },
+          }
         );
       });
     };
@@ -76,15 +104,28 @@ class ReaderController {
 
   // [PUT] /users/reader
   editReader(req, res) {
-    const { user_id, address, phone_num, birth_date, email_address, gender, first_name, last_name, created_at } =
-      req.body;
+    const {
+      user_id,
+      address,
+      phone_num,
+      birth_date,
+      email_address,
+      gender,
+      first_name,
+      last_name,
+      created_at,
+    } = req.body;
 
     const user_avatar = `/user-avatars/${req?.file?.filename}`;
 
     const updateUserInfo = () => {
       const updateUserInfoSql = `
             update user_info set 
-            ${req?.file?.filename ? `user_avatar=${user_avatar ? `'${user_avatar}'` : null},` : ""} 
+            ${
+              req?.file?.filename
+                ? `user_avatar=${user_avatar ? `'${user_avatar}'` : null},`
+                : ""
+            } 
             phone_num=${phone_num ? `'${phone_num}'` : null}, 
             address=${address ? `'${address}'` : null}, 
             birth_date=${birth_date ? `'${birth_date}'` : null},
@@ -92,7 +133,9 @@ class ReaderController {
             gender=${gender ? `'${gender}'` : null}, 
             first_name=${first_name ? `'${first_name}'` : null}, 
             last_name=${last_name ? `'${last_name}'` : null},
-            full_name='${first_name ? first_name : ""} ${last_name ? last_name : ""}',
+            full_name='${first_name ? first_name : ""} ${
+        last_name ? last_name : ""
+      }',
             created_at=${created_at ? `'${created_at}'` : "created_at"}
             where user_id=${user_id}
           `;
