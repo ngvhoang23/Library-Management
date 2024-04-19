@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   Image,
   Pressable,
+  ImageBackground,
 } from "react-native";
 import { globalStyles } from "../../styles/global.js";
 import { Formik } from "formik";
@@ -39,11 +40,11 @@ const formSchema = yup.object({
   birth_date: yup
     .string()
     .required()
-    .test("older than 17", "Age must be equal or greater than 18", (val) => {
+    .test("older than 17", "Age must be from 18 to 55", (val) => {
       const year = val.split("-")[0];
       const currentYear = new Date().getFullYear();
       age = currentYear - year;
-      return age >= 18;
+      return age >= 18 && age <= 55;
     }),
   first_name: yup.string().trim().required(),
   last_name: yup.string().trim().required(),
@@ -59,9 +60,10 @@ const formSchema = yup.object({
   }),
 });
 
-function AddEmployeScreen({ navigation }) {
+function AddReaderScreen({ navigation }) {
   const [avatar, setAvatar] = useState();
   const [isShowDatePicker, setIsShowDatePicker] = useState(false);
+  const [isShowStartDatePicker, setIsShowStartDatePicker] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [resultStatus, setResultStatus] = useState({ isSuccess: false, visible: false });
 
@@ -78,16 +80,32 @@ function AddEmployeScreen({ navigation }) {
     }
   };
 
-  const trySubmit = (empInfo) => {
-    const { user_name, password, phone_num, birth_date, email_address, gender, first_name, last_name, address } =
-      empInfo;
+  const trySubmit = (readerInfo) => {
+    const {
+      user_name,
+      password,
+      phone_num,
+      birth_date,
+      email_address,
+      gender,
+      first_name,
+      last_name,
+      address,
+      start_date,
+      reader_type,
+    } = readerInfo;
+
+    const start_date_formated = new Date(start_date);
+
+    const expired_date = new Date(start_date_formated.setMonth(start_date_formated.getMonth() + 6));
+
     setIsLoading(true);
     const formData = new FormData();
 
     avatar &&
       formData.append("avatar", {
         uri: avatar.uri,
-        name: "emp-avatar",
+        name: "reader-avatar",
         type: avatar.mimeType,
       });
 
@@ -95,9 +113,12 @@ function AddEmployeScreen({ navigation }) {
     formData.append("password", password.trim());
     phone_num && formData.append("phone_num", phone_num.trim());
     birth_date && formData.append("birth_date", birth_date);
+    start_date && formData.append("created_at", start_date);
+    expired_date && formData.append("expired_date", expired_date.toISOString().split("T")[0]);
     email_address && formData.append("email_address", email_address.trim());
     address && formData.append("address", address.trim());
-    formData.append("gender", gender.value);
+    formData.append("gender", gender?.value);
+    formData.append("reader_type", reader_type?.value);
     first_name && formData.append("first_name", first_name.trim());
     last_name && formData.append("last_name", last_name.trim());
 
@@ -106,7 +127,7 @@ function AddEmployeScreen({ navigation }) {
         .then((access_token) => {
           const configurations = {
             method: "POST",
-            url: `http://10.0.2.2:5000/users/employee`,
+            url: `http://10.0.2.2:5000/users/reader`,
             data: formData,
             headers: {
               Accept: "application/json",
@@ -130,15 +151,17 @@ function AddEmployeScreen({ navigation }) {
             });
         })
         .catch((err) => {
+          reject(err);
           console.log(err);
         });
     });
   };
 
-  const handleSubmit = (readerInfo) => {
+  const handleSubmit = (readerInfo, resetForm) => {
     trySubmit(readerInfo)
       .then((result) => {
-        navigation.navigate("Dashboard", { screen: "Employees" });
+        resetForm();
+        navigation.navigate("Dashboard", { screen: "Readers" });
         setResultStatus({ isSuccess: 1, visible: true });
       })
       .catch((err) => {
@@ -146,8 +169,9 @@ function AddEmployeScreen({ navigation }) {
         if (err?.message === "Network Error") {
           trySubmit(readerInfo)
             .then((result) => {
+              resetForm();
               navigation.navigate("Dashboard", {
-                screen: "Employees",
+                screen: "Readers",
               });
               setResultStatus({ isSuccess: 1, visible: true });
             })
@@ -165,7 +189,7 @@ function AddEmployeScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.wrapper}>
+    <ImageBackground source={require("../../assets/images/page_bg3.jpg")} style={styles.wrapper}>
       <Formik
         initialValues={{
           user_name: "",
@@ -173,14 +197,20 @@ function AddEmployeScreen({ navigation }) {
           phone_num: "",
           email_address: "",
           birth_date: new Date().toISOString().split("T")[0],
+          start_date: new Date().toISOString().split("T")[0],
           gender: { value: 1, index: 0 },
+          reader_type: { value: "student", index: 0 },
           first_name: "",
           last_name: "",
           address: "",
         }}
         validationSchema={formSchema}
         onSubmit={(values, actions) => {
-          handleSubmit(values);
+          const resetForm = () => {
+            setAvatar();
+            actions.resetForm();
+          };
+          handleSubmit(values, resetForm);
         }}
       >
         {(props) => (
@@ -191,7 +221,7 @@ function AddEmployeScreen({ navigation }) {
                 avatar={avatar}
                 setAvatar={setAvatar}
                 onPickImage={pickImage}
-                title={"Select Avatar"}
+                title={"Select Cover Photo"}
               />
               <InputItem
                 _styles={[styles.input]}
@@ -228,10 +258,29 @@ function AddEmployeScreen({ navigation }) {
                 <DateTimePicker
                   mode="date"
                   display="spinner"
-                  value={new Date()}
+                  value={new Date(props.values.birth_date)}
                   onChange={(event, selectedDate) => {
                     setIsShowDatePicker(false);
                     props.setFieldValue("birth_date", selectedDate.toISOString().split("T")[0]);
+                  }}
+                />
+              )}
+
+              <MyDateTimePicker
+                _styles={[styles.input]}
+                lableTitle="Start Date"
+                value={props.values.start_date}
+                errorText={props.errors.start_date}
+                onPress={() => setIsShowStartDatePicker(true)}
+              />
+              {isShowStartDatePicker && (
+                <DateTimePicker
+                  mode="date"
+                  display="spinner"
+                  value={new Date(props.values.start_date)}
+                  onChange={(event, selectedDate) => {
+                    setIsShowStartDatePicker(false);
+                    props.setFieldValue("start_date", selectedDate.toISOString().split("T")[0]);
                   }}
                 />
               )}
@@ -257,6 +306,7 @@ function AddEmployeScreen({ navigation }) {
               <MenuPickers
                 _styles={[styles.input]}
                 lableTitle="Gender"
+                initIndex={0}
                 value={props.values.gender}
                 errorText={props.errors.gender}
                 options={[
@@ -265,6 +315,21 @@ function AddEmployeScreen({ navigation }) {
                 ]}
                 onChange={(selectedValue, selectedIndex) =>
                   props.setFieldValue("gender", { value: selectedValue, index: selectedIndex })
+                }
+              />
+
+              <MenuPickers
+                _styles={[styles.input]}
+                lableTitle="Reader type"
+                initIndex={0}
+                value={props.values.reader_type}
+                errorText={props.errors.reader_type}
+                options={[
+                  { title: "Student", value: "student" },
+                  { title: "Lecturer", value: "lecturer" },
+                ]}
+                onChange={(selectedValue, selectedIndex) =>
+                  props.setFieldValue("reader_type", { value: selectedValue, index: selectedIndex })
                 }
               />
 
@@ -287,7 +352,7 @@ function AddEmployeScreen({ navigation }) {
               <FlatButton
                 _styles={styles.submitBtn}
                 onPress={props.handleSubmit}
-                text="submit"
+                text="Submit"
                 fontSize={normalize(10)}
               />
             </ScrollView>
@@ -300,7 +365,7 @@ function AddEmployeScreen({ navigation }) {
         isSuccess={resultStatus?.isSuccess}
         visible={resultStatus?.visible ? true : false}
       />
-    </View>
+    </ImageBackground>
   );
 }
 
@@ -310,6 +375,13 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     justifyContent: "space-between",
     alignItems: "center",
+  },
+
+  headerTitle: {
+    fontFamily: "nunito-medium",
+    fontSize: normalize(18),
+    width: "100%",
+    marginLeft: normalize(40),
   },
 
   avatarPicker: {
@@ -328,7 +400,6 @@ const styles = StyleSheet.create({
 
   formContainer: {
     width: "90%",
-    height: normalize(720),
   },
 
   input: {
@@ -345,8 +416,9 @@ const styles = StyleSheet.create({
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#1e74fd",
+    backgroundColor: "#6c60ff",
+    borderRadius: normalize(1000),
   },
 });
 
-export default AddEmployeScreen;
+export default AddReaderScreen;
