@@ -68,7 +68,36 @@ class ReaderController {
   }
 
   // [GET] /users/readers/searching/:search_value
-  searchReaders(req, res) {}
+  searchReaders(req, res) {
+  const { search_value } = req.query;
+
+      const promise = () => {
+        const data = [`%${search_value}%`];
+        const sql = `
+          select ui.*, uai.user_name, uai.password, uai.role, uai.role from user_auth_info uai
+          inner join user_info ui
+          on uai.user_id = ui.user_id
+          where uai.role = 'reader' and ui.full_name like ?
+        `;
+        return new Promise((resolve, reject) => {
+          db.query(sql, data, (err, result) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(result);
+            }
+          });
+        });
+      };
+
+      promise()
+        .then((result) => {
+          res.status(200).send(result);
+        })
+        .catch((err) => {
+          res.status(400).send(err);
+        });
+    }
 
   // [POST] /users/reader
   postReader(req, res) {}
