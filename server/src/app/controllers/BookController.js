@@ -41,7 +41,34 @@ class BookController {
   getCategories(req, res) {}
 
   // [GET] /books/book-groups/
-  getBookGroups(req, res) {}
+  getBookGroups(req, res) {
+    const promise = () => {
+      return new Promise((resolve, reject) => {
+        db.query(
+          `
+        select * from book_detail
+          inner join authors on book_detail.author_id = authors.author_id
+          inner join categories on book_detail.category_id = categories.category_id
+        `,
+          (err, result) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(result);
+            }
+          },
+        );
+      });
+    };
+
+    promise()
+      .then((result) => {
+        res.status(200).send(result);
+      })
+      .catch((err) => {
+        res.status(400).send(err);
+      });
+  }
 
   // [GET] /books/book-groups/:book_detail_id
   getBookGroup(req, res) {}
