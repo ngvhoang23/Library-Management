@@ -315,7 +315,32 @@ class BookController {
   }
 
   // [PUT] /books/
-  editBook(req, res) {}
+  editBook(req, res) {
+    const { book_id, import_date, position } = req.body;
+
+    const data = [position, import_date, book_id];
+
+    const promise = () => {
+      return new Promise((resolve, reject) => {
+        db.query(`update books set position=?, import_date=? where book_id=?`, data, (err, result) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(result);
+          }
+        });
+      });
+    };
+
+    promise()
+      .then((result) => {
+        res.status(200).send(result);
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(400).send(err);
+      });
+  }
 }
 
 module.exports = new BookController();
