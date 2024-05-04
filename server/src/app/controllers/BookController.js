@@ -196,8 +196,40 @@ class BookController {
   // [POST] /books
   postBook(req, res) {}
 
-  // [DELETE] /books
-  deleteBook(req, res) {}
+  // [DELETE] /books/:book_id
+  deleteBooks(req, res) {
+    const { deleting_books } = req.body;
+
+    const getBookIdList = () => {
+      return deleting_books
+        .map((book_id) => {
+          return book_id;
+        })
+        .join(",");
+    };
+
+    const promise = () => {
+      const sql = `delete from books where book_id in (${getBookIdList()})`;
+      return new Promise((resolve, reject) => {
+        db.query(sql, (err, result) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(result);
+          }
+        });
+      });
+    };
+
+    promise()
+      .then((result) => {
+        res.status(200).send(result);
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(400).send(err);
+      });
+  }
 
   // [PUT] /books/book-groups
   editBookGroup(req, res) {
