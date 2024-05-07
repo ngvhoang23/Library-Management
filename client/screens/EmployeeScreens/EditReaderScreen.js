@@ -199,15 +199,15 @@ function EditReaderScreen({ route, navigation }) {
 
               <InputItem
                 _styles={[styles.input]}
-                placeholder="Phone Number"
-                lableTitle="Phone Number"
+                placeholder="Số điện thoại"
+                lableTitle="Số điện thoại"
                 onChange={props.handleChange("phone_num")}
                 value={props.values.phone_num}
                 errorText={props.errors.phone_num}
               />
               <MyDateTimePicker
                 _styles={[styles.input]}
-                lableTitle="Birth Date"
+                lableTitle="Ngày sinh"
                 value={props.values.birth_date}
                 errorText={props.errors.birth_date}
                 onPress={() => setIsShowDatePicker(true)}
@@ -235,8 +235,8 @@ function EditReaderScreen({ route, navigation }) {
 
               <InputItem
                 _styles={[styles.input]}
-                placeholder="Address"
-                lableTitle="Address"
+                placeholder="Địa chỉ"
+                lableTitle="Địa chỉ"
                 onChange={props.handleChange("address")}
                 value={props.values.address}
                 errorText={props.errors.address}
@@ -244,7 +244,7 @@ function EditReaderScreen({ route, navigation }) {
 
               <MenuPickers
                 _styles={[styles.input]}
-                lableTitle="Gender"
+                lableTitle="Giới tính"
                 initIndex={gender === 0 ? 1 : 0}
                 value={props.values.gender}
                 errorText={props.errors.gender}
@@ -259,16 +259,16 @@ function EditReaderScreen({ route, navigation }) {
 
               <InputItem
                 _styles={[styles.input]}
-                placeholder="First Name"
-                lableTitle="First Name"
+                placeholder="Họ"
+                lableTitle="Họ"
                 onChange={props.handleChange("first_name")}
                 value={props.values.first_name}
                 errorText={props.errors.first_name}
               />
               <InputItem
                 _styles={[styles.input]}
-                placeholder="Last Name"
-                lableTitle="Last Name"
+                placeholder="Tên và tên đệm"
+                lableTitle="Tên và tên đệm"
                 onChange={props.handleChange("last_name")}
                 value={props.values.last_name}
                 errorText={props.errors.last_name}
@@ -276,7 +276,7 @@ function EditReaderScreen({ route, navigation }) {
               <FlatButton
                 _styles={styles.submitBtn}
                 onPress={props.handleSubmit}
-                text="Submit"
+                text="Chỉnh sửa"
                 fontSize={normalize(10)}
               />
             </ScrollView>
