@@ -176,19 +176,153 @@ class BookController {
   }
 
   // [GET] /books/books-groups/searching/:search_value
-  searchBookGroups(req, res) {}
+  searchBookGroups(req, res) {
+  const { search_value } = req.query;
+
+      const promise = () => {
+        const data = [`%${search_value}%`];
+
+        return new Promise((resolve, reject) => {
+          db.query(
+            `select * from book_detail
+              inner join authors on book_detail.author_id = authors.author_id
+              inner join categories on book_detail.category_id = categories.category_id
+              where book_detail.book_name like ?`,
+            data,
+            (err, result) => {
+              if (err) {
+                reject(err);
+              } else {
+                resolve(result);
+              }
+            },
+          );
+        });
+      };
+
+      promise()
+        .then((result) => {
+          res.status(200).send(result);
+        })
+        .catch((err) => {
+          console.log("err", err);
+          res.status(400).send(err);
+        });
+        }
 
   // [GET] /books/searching/:search_value
-  searchBooks(req, res) {}
+  searchBooks(req, res) {
+  const { search_value, book_detail_id } = req.query;
+
+      const promise = () => {
+        const data = [`%${search_value}%`];
+
+        return new Promise((resolve, reject) => {
+          db.query(
+            `select * from books
+                inner join book_detail on books.book_detail_id = book_detail.book_detail_id
+                inner join authors on book_detail.author_id = authors.author_id
+                inner join categories on book_detail.category_id = categories.category_id
+                where books.position like ? and books.book_detail_id = ${book_detail_id}`,
+            data,
+            (err, result) => {
+              if (err) {
+                reject(err);
+              } else {
+                resolve(result);
+              }
+            },
+          );
+        });
+      };
+
+      promise()
+        .then((result) => {
+          res.status(200).send(result);
+        })
+        .catch((err) => {
+          console.log("err", err);
+          res.status(400).send(err);
+        });
+        }
 
   // [GET] /books/authors
-  getAuthors(req, res) {}
+  getAuthors(req, res) {
+  const promise = () => {
+        return new Promise((resolve, reject) => {
+          db.query(
+            `
+            select * from authors
+            `,
+            (err, result) => {
+              if (err) {
+                reject(err);
+              } else {
+                resolve(result);
+              }
+            },
+          );
+        });
+      };
+
+      promise()
+        .then((result) => {
+          res.status(200).send(result);
+        })
+        .catch((err) => {
+          res.status(400).send(err);
+        });
+        }
 
   // [GET] /books/by-author
-  getBookByAuthor(req, res) {}
+  getBookByAuthor(req, res) {
+    const { author_id } = req.query;
+
+      const promise = () => {
+        return new Promise((resolve, reject) => {
+          db.query(`select * from book_detail where author_id=${author_id}`, (err, result) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(result);
+            }
+          });
+        });
+      };
+
+      promise()
+        .then((result) => {
+          res.status(200).send(result);
+        })
+        .catch((err) => {
+          res.status(400).send(err);
+        });
+        }
 
   // [GET] /books/by-category
-  getBookByCategory(req, res) {}
+  getBookByCategory(req, res) {
+   const { category_id } = req.query;
+
+      const promise = () => {
+        return new Promise((resolve, reject) => {
+          db.query(`select * from book_detail where category_id=${category_id}`, (err, result) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(result);
+            }
+          });
+        });
+      };
+
+      promise()
+        .then((result) => {
+          res.status(200).send(result);
+        })
+        .catch((err) => {
+          res.status(400).send(err);
+        });
+        }
 
   // [POST] /books/book-groups
   postBookGroup(req, res) {}
