@@ -325,8 +325,64 @@ class BookController {
         }
 
   // [POST] /books/book-groups
-  postBookGroup(req, res) {}
+  postBookGroup(req, res) {
+    const { book_name, price, published_date, author_id, description, category_id, publish_com, for_reader } = req.body;
 
+    let cover_photo = undefined;
+
+    if (req?.file?.filename) {
+      cover_photo = `/book-cover-photos/${req?.file.filename}`;
+    } else {
+      cover_photo = `/book-cover-photos/default_cover_photo.jpg`;
+    }
+
+    const books = [];
+
+    books.push([
+      book_name || null,
+      price || null,
+      published_date || null,
+      author_id || null,
+      description || null,
+      category_id || null,
+      publish_com || null,
+      cover_photo || null,
+      for_reader || null,
+    ]);
+
+    const insertBook = () => {
+      const sql = `insert into book_detail(
+        book_name,
+        price,
+        published_date,
+        author_id,
+        description,
+        category_id,
+        publish_com,
+        cover_photo,
+        for_reader) 
+        values ?`;
+
+      return new Promise((resolve, reject) => {
+        db.query(sql, [books], (err, result) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(result);
+          }
+        });
+      });
+    };
+
+    insertBook()
+      .then((result) => {
+        res.status(200).send(result);
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(400).send(err);
+      });
+  }
   // [POST] /books
   postBook(req, res) {}
 
