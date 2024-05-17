@@ -285,8 +285,32 @@ class ReaderController {
       });
   }
 
-  // [PUT] /users/reader-status
-  makeReaderActive(req, res) {}
+  makeReaderActive(req, res) {
+    const { user_id, month } = req.body;
+
+    const promise = () => {
+      return new Promise((resolve, reject) => {
+        db.query(
+          `update user_info set expire_date = DATE_ADD(curdate(), INTERVAL ${month} MONTH) where user_id=${user_id}`,
+          (err, result) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(result);
+            }
+          },
+        );
+      });
+    };
+
+    promise()
+      .then((result) => {
+        res.status(200).send(result);
+      })
+      .catch((err) => {
+        res.status(400).send(err);
+      });
+  }
 }
 
 module.exports = new ReaderController();
