@@ -384,7 +384,35 @@ class BookController {
       });
   }
   // [POST] /books
-  postBook(req, res) {}
+   // [POST] /books
+   postBook(req, res) {
+    const { book_detail_id, position, import_date } = req.body;
+
+    const book = [];
+
+    book.push([book_detail_id || null, position || null, import_date || null, 1]);
+
+    const promise = () => {
+      return new Promise((resolve, reject) => {
+        db.query(`insert into books(book_detail_id, position, import_date, status) values ?`, [book], (err, result) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(result);
+          }
+        });
+      });
+    };
+
+    promise()
+      .then((result) => {
+        res.status(200).send(result);
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(400).send(err);
+      });
+  }
 
   // [DELETE] /books/:book_id
   deleteBooks(req, res) {
