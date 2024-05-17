@@ -85,8 +85,35 @@ class BorrowedBooksController {
   }
 
 
-  // [PUT] /borrowed-books/return-book
-  returnBook(req, res) {}
+   // [PUT] /borrowed-books/return-book/:borrow_id
+   returnBook(req, res) {
+    const { borrow_id, actual_return_date } = req.body;
+
+    const promise = () => {
+      return new Promise((resolve, reject) => {
+        db.query(
+          `update borrowed_books set actual_return_date='${actual_return_date}' where borrow_id=${borrow_id}`,
+          (err, result) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(result);
+            }
+          },
+        );
+      });
+    };
+
+    promise()
+      .then((result) => {
+        res.status(200).send(result);
+      })
+      .catch((err) => {
+        console.log(err);
+        res.status(400).send(err);
+      });
+  }
+
   getOverdueBooksStatistic(req, res) {
     const { date } = req.query;
 
