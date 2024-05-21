@@ -114,56 +114,129 @@ class BorrowedBooksController {
       });
   }
 
-  getOverdueBooksStatistic(req, res) {
-    const { date } = req.query;
-
-    const promise = () => {
-      return new Promise((resolve, reject) => {
-        const sql = `
-        select bb.*, bd.book_name, DATEDIFF(DATE('${date}'), bb.return_date) as overdue_days from borrowed_books bb
-        inner join books b
-        on b.book_id = bb.book_id
-        inner join book_detail bd
-        on bd.book_detail_id = b.book_detail_id
-        where bb.return_date < DATE('${date}') and bb.actual_return_date is null;
-        with rm as (
-          select bd.book_detail_id, count(*) as count from borrowed_books bb
+    // [GET] /statistic/books-borrowed
+    getBooksBorrowedStatisticByCategory(req, res) {
+      const { month } = req.query;
+  
+      const promise = () => {
+        return new Promise((resolve, reject) => {
+          const sql = `
+          with rm as (
+            select c.category_id, count(bb.borrow_id) as count from borrowed_books bb
+            inner join books b
+            on bb.book_id = b.book_id
+            inner join book_detail bd
+            on bd.book_detail_id = b.book_detail_id
+            inner join categories c
+            on c.category_id = bd.category_id
+              where month(borrow_date) = ${month} 
+            group by c.category_id
+          )
+          select c.*, rm.count from rm
+          inner join categories c
+          on c.category_id = rm.category_id
+          `;
+  
+          db.query(sql, (err, result) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(result);
+            }
+          });
+        });
+      };
+  
+      promise()
+        .then((result) => {
+          res.status(200).send(result);
+        })
+        .catch((err) => {
+          console.log(err);
+          res.status(400).send(err);
+        });
+    }
+  
+    // [GET] /statistic/overdue-books
+    getOverdueBooksStatistic(req, res) {
+      const { date } = req.query;
+  
+      const promise = () => {
+        return new Promise((resolve, reject) => {
+          const sql = `
+          select bb.*, bd.book_name, DATEDIFF(DATE('${date}'), bb.return_date) as overdue_days from borrowed_books bb
           inner join books b
           on b.book_id = bb.book_id
           inner join book_detail bd
           on bd.book_detail_id = b.book_detail_id
-          where bb.return_date < DATE('${date}') and bb.actual_return_date is null
-          group by bd.book_detail_id
-        )
-        select * from rm
-        inner join book_detail bd 
-        on rm.book_detail_id = bd.book_detail_id
-          `;
-
-        db.query(sql, (err, result) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(result);
-          }
+          where bb.return_date < DATE('${date}') and bb.actual_return_date is null;
+          with rm as (
+            select bd.book_detail_id, count(*) as count from borrowed_books bb
+            inner join books b
+            on b.book_id = bb.book_id
+            inner join book_detail bd
+            on bd.book_detail_id = b.book_detail_id
+            where bb.return_date < DATE('${date}') and bb.actual_return_date is null
+            group by bd.book_detail_id
+          )
+          select * from rm
+          inner join book_detail bd 
+          on rm.book_detail_id = bd.book_detail_id
+            `;
+  
+          db.query(sql, (err, result) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(result);
+            }
+          });
         });
-      });
-    };
-
-    promise()
-      .then((result) => {
-        console.log(result);
-        const data = {
-          overdue_data: result[0],
-          overdue_book_detail: result[1],
-        };
-        res.status(200).send(data);
-      })
-      .catch((err) => {
-        console.log(err);
-        res.status(400).send(err);
-      });
-  }
+      };
+  
+      promise()
+        .then((result) => {
+          console.log(result);
+          const data = {
+            overdue_data: result[0],
+            overdue_book_detail: result[1],
+          };
+          res.status(200).send(data);
+        })
+        .catch((err) => {
+          console.log(err);
+          res.status(400).send(err);
+        });
+    }
+  
+    // [GET] /statistic/book-status
+    getBookStatusStatistic(req, res) {
+      const promise = () => {
+        return new Promise((resolve, reject) => {
+          const sql = `
+          select b.status, count(*) as count from books b
+          group by b.status
+          `;
+  
+          db.query(sql, (err, result) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(result);
+            }
+          });
+        });
+      };
+  
+      promise()
+        .then((result) => {
+          res.status(200).send(result);
+        })
+        .catch((err) => {
+          console.log(err);
+          res.status(400).send(err);
+        });
+    }
 }
 
 module.exports = new BorrowedBooksController();
